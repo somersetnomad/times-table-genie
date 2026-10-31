@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Zubi the maths genie teaches children to rebuild any times table fact from ones they already know. Interactive arrays, a splitter, a practice challenge and a fact map.">
+<meta property="og:title" content="Times Table Genie">
+<meta property="og:description" content="Forgot a times table fact? Rebuild it. Free interactive times tables for kids.">
+<title>Times Table Genie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bagel+Fat+One&display=swap" rel="stylesheet">
+<style>
+/* Layout: one lamp-lit "stage" panel per section (always night-sky) sitting on a calm mint page; the stage is where all the magic happens. */
+:root{
+  --bg:#E9F5EF; --surface:#FFFFFF; --surface-2:#F4FAF7; --ink:#14263A; --muted:#4A5F70; --line:#CFE3DA;
+  --gold:#F4A916; --gold-deep:#C77E00; --coral:#EE5A4A; --teal:#1E9C8C; --sky:#2F7FD8;
+  --stage:#102A35; --stage-2:#17394A; --stage-ink:#F3F7F2; --stage-muted:#A9C4C6;
+  --seg-a:#FFB627; --seg-b:#3CCFB8; --ghost:#5E8391; --minus:#FF7563;
+  --genie:#5A8DF0; --genie-deep:#3C66C4; --eye:#14263A;
+  --lv0:#FFFFFF; --lv1:#FFD9D2; --lv2:#FFE7A8; --lv3:#9FE3D5;
+  --display:"Bagel Fat One","Arial Rounded MT Bold","Trebuchet MS",sans-serif;
+  --body:"Atkinson Hyperlegible","Verdana","Segoe UI",sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1D22; --surface:#132C33; --surface-2:#173740; --ink:#EAF4F0; --muted:#A7C1BB; --line:#26474F;
+  --gold:#FFBA3A; --gold-deep:#D98E10; --coral:#FF7A6B; --teal:#3CC4B2; --sky:#6AA8F0;
+  --stage:#081A22; --stage-2:#10303D;
+  --lv0:#132C33; --lv1:#4A2A2C; --lv2:#4D4020; --lv3:#1F5A52; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1D22; --surface:#132C33; --surface-2:#173740; --ink:#EAF4F0; --muted:#A7C1BB; --line:#26474F;
+  --gold:#FFBA3A; --gold-deep:#D98E10; --coral:#FF7A6B; --teal:#3CC4B2; --sky:#6AA8F0;
+  --stage:#081A22; --stage-2:#10303D;
+  --lv0:#132C33; --lv1:#4A2A2C; --lv2:#4D4020; --lv3:#1F5A52; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1140px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.08;text-wrap:balance;margin:0;letter-spacing:.3px}
+h2{font-size:clamp(30px,4.6vw,46px)}
+h3{font-size:22px}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--sky);outline-offset:3px;border-radius:8px}
+.eyebrow{font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.lede{color:var(--muted);max-width:60ch;font-size:18px}
+
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:16px;padding-block:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:22px;text-decoration:none;color:var(--ink)}
+.brand svg{width:38px;height:30px}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav a{color:var(--muted);text-decoration:none;font-weight:700;font-size:15px;padding:6px 10px;border-radius:999px}
+nav a:hover{background:var(--surface);color:var(--ink)}
+.sound{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:700;font-size:14px}
+.sound[aria-pressed="true"]{border-color:var(--teal);color:var(--teal)}
+@media (max-width:760px){nav{display:none}.sound{margin-left:auto}}
+
+section{padding-block:clamp(48px,7vw,88px)}
+.sec-head{display:grid;gap:12px;margin-bottom:28px}
+
+/* stage */
+.stage{background:radial-gradient(1.5px 1.5px at 12% 18%,#fff8 50%,transparent 51%),radial-gradient(1px 1px at 72% 12%,#fff9 50%,transparent 51%),radial-gradient(1.5px 1.5px at 88% 62%,#fff6 50%,transparent 51%),radial-gradient(1px 1px at 30% 80%,#fff7 50%,transparent 51%),radial-gradient(1px 1px at 52% 40%,#fff5 50%,transparent 51%),linear-gradient(160deg,var(--stage-2),var(--stage));color:var(--stage-ink);border-radius:28px;position:relative;overflow:hidden}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr);gap:clamp(24px,4vw,56px);align-items:center;padding-block:clamp(32px,5vw,64px)}
+@media (max-width:880px){.hero{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(40px,6.4vw,72px)}
+.hero h1 .gold{color:var(--gold-deep)}
+:root[data-theme="dark"] .hero h1 .gold{color:var(--gold)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .hero h1 .gold{color:var(--gold)}}
+.hero-copy{display:grid;gap:20px;min-width:0}
+.picker{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1.5px solid var(--line);border-radius:22px;padding:14px;width:fit-content;max-width:100%}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:40px;height:40px;border-radius:12px;border:none;background:var(--surface-2);font-size:24px;font-weight:700;line-height:1}
+.stepper button:hover{background:var(--line)}
+.stepper output{font-family:var(--display);font-size:40px;min-width:1.4em;text-align:center;font-variant-numeric:tabular-nums}
+.times{font-family:var(--display);font-size:32px;color:var(--muted)}
+.btn{border:none;border-radius:999px;padding:13px 22px;font-weight:700;font-size:17px;background:var(--gold);color:#2A1A00;box-shadow:0 4px 0 var(--gold-deep);transition:transform .1s,box-shadow .1s}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--gold-deep)}
+.btn.ghost{background:transparent;color:inherit;box-shadow:inset 0 0 0 2px currentColor}
+.hint-line{font-size:15px;color:var(--muted)}
+
+.lamp-stage{padding:clamp(18px,3vw,30px);display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px 22px;min-height:460px}
+@media (max-width:560px){.lamp-stage{grid-template-columns:96px minmax(0,1fr)}}
+.genie-slot{align-self:start}
+.genie{width:100%;height:auto;overflow:visible}
+.bubble{background:var(--stage-ink);color:var(--eye);border-radius:20px 20px 20px 6px;padding:14px 18px;font-weight:700;font-size:18px;position:relative;align-self:start;margin-top:8px}
+.bubble small{display:block;font-weight:400;color:#4A5F70;font-size:14px;margin-top:2px}
+.lamp-body{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:640px){.lamp-body{grid-template-columns:1fr}}
+.fact{font-family:var(--display);font-size:clamp(36px,5vw,52px);line-height:1;display:flex;gap:12px;flex-wrap:wrap;align-items:baseline}
+.fact .eq{color:var(--seg-a)}
+.arr{width:100%;height:auto;max-height:440px;display:block}
+.arr text{font-family:var(--body);font-weight:700;font-size:15px}
+.lab-a{fill:var(--seg-a)}.lab-b{fill:var(--seg-b)}.lab-ghost{fill:var(--ghost)}.lab-minus{fill:var(--minus)}
+.brace{fill:none;stroke-width:2.5}
+.br-a{stroke:var(--seg-a)}.br-b{stroke:var(--seg-b)}.br-ghost{stroke:var(--ghost)}.br-minus{stroke:var(--minus)}
+.cell.k-a{fill:var(--seg-a)}.cell.k-b{fill:var(--seg-b)}
+.cell.k-ghost{fill:none;stroke:var(--ghost);stroke-width:1.5;stroke-dasharray:3 3}
+.cell.k-minus{fill:none;stroke:var(--minus);stroke-width:2}
+.strike{stroke:var(--minus);stroke-width:3;stroke-linecap:round}
+.anim .cell{animation:pop .38s cubic-bezier(.3,1.7,.5,1) both;transform-box:fill-box;transform-origin:center}
+@keyframes pop{from{transform:scale(.2);opacity:.15}to{transform:none;opacity:1}}
+.clickable .cell{cursor:pointer}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:s}
+.steps li{background:#ffffff12;border:1px solid #ffffff1f;border-radius:14px;padding:10px 14px 10px 46px;position:relative;font-size:17px}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:12px;top:10px;width:24px;height:24px;border-radius:50%;background:var(--stage-ink);color:var(--eye);font-weight:700;font-size:13px;display:grid;place-items:center}
+.steps.anim li{animation:rise .45s ease-out both}
+@keyframes rise{from{transform:translateY(10px);opacity:.1}to{transform:none;opacity:1}}
+.ca{color:var(--seg-a);font-weight:700}.cb{color:var(--seg-b);font-weight:700}
+.ans{color:var(--stage-ink);background:var(--seg-a);color:#2A1A00;padding:0 8px;border-radius:8px}
+.qm{display:inline-block;background:var(--minus);color:#fff;padding:0 10px;border-radius:8px;font-weight:700}
+
+/* genie motion */
+.g-float{animation:float 4.5s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-6px)}}
+.g-eyes{transform-box:fill-box;transform-origin:center;animation:blink 6s infinite}
+@keyframes blink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.genie.cheer{animation:cheer .7s ease}
+@keyframes cheer{30%{transform:translateY(-14px) rotate(-6deg)}60%{transform:translateY(0) rotate(4deg)}}
+.genie.think{animation:think .7s ease}
+@keyframes think{25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+
+/* spells */
+.spells{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.spell{background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r);padding:20px;display:grid;gap:12px;grid-template-rows:auto auto 1fr auto;min-width:0}
+.spell .tag{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.spell p{color:var(--muted);font-size:16px}
+.formula{background:var(--stage);color:var(--stage-ink);border-radius:12px;padding:10px 12px;font-weight:700;font-variant-numeric:tabular-nums;font-size:16px}
+.spell button{justify-self:start;background:none;border:none;color:var(--teal);font-weight:700;padding:4px 0;font-size:16px}
+.spell button:hover{text-decoration:underline}
+
+/* splitter */
+.split-stage{padding:clamp(18px,3vw,30px);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;align-items:center}
+@media (max-width:760px){.split-stage{grid-template-columns:1fr}}
+.split-ctrl{display:grid;gap:18px}
+.split-ctrl .stepper button{background:#ffffff18;color:var(--stage-ink)}
+.split-ctrl .stepper button:hover{background:#ffffff30}
+.row-pick{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.row-pick label{color:var(--stage-muted);font-weight:700;font-size:14px;letter-spacing:.06em;text-transform:uppercase;min-width:60px}
+input[type=range]{accent-color:var(--seg-a);width:100%;max-width:280px}
+.sum{display:grid;gap:8px;font-size:20px;font-variant-numeric:tabular-nums}
+.sum .total{font-family:var(--display);font-size:34px;border-top:1px solid #ffffff2a;padding-top:10px}
+.split-note{color:var(--stage-muted);font-size:15px}
+
+/* challenge */
+.chal{padding:clamp(18px,3vw,32px);display:grid;gap:22px}
+.setup{display:grid;gap:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid #ffffff40;background:transparent;color:var(--stage-ink);border-radius:999px;min-width:48px;padding:8px 12px;font-weight:700;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--seg-a);border-color:var(--seg-a);color:#2A1A00}
+.play{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:24px;align-items:start}
+@media (max-width:720px){.play{grid-template-columns:1fr}}
+.qbox{display:grid;grid-template-columns:90px minmax(0,1fr);gap:16px;align-items:center}
+.question{font-family:var(--display);font-size:clamp(44px,8vw,76px);line-height:1;font-variant-numeric:tabular-nums}
+.answer-box{display:inline-block;min-width:2.2em;border-bottom:4px solid var(--seg-a);text-align:center;color:var(--seg-a)}
+.feedback{min-height:28px;font-weight:700;font-size:18px}
+.feedback.good{color:var(--seg-b)}.feedback.bad{color:var(--minus)}
+.progress{display:flex;gap:6px;flex-wrap:wrap}
+.progress span{width:22px;height:8px;border-radius:4px;background:#ffffff25}
+.progress span.ok{background:var(--seg-b)}.progress span.miss{background:var(--minus)}.progress span.now{background:var(--stage-ink)}
+.meta{display:flex;gap:18px;flex-wrap:wrap;color:var(--stage-muted);font-weight:700;font-size:15px}
+.meta b{color:var(--stage-ink)}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.keypad button{height:58px;border-radius:14px;border:none;background:#ffffff16;color:var(--stage-ink);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.keypad button:hover{background:#ffffff28}
+.keypad .go{background:var(--seg-a);color:#2A1A00}
+.keypad .go:hover{background:var(--gold)}
+.hintbox{background:#ffffff0d;border:1px dashed #ffffff35;border-radius:18px;padding:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:640px){.hintbox{grid-template-columns:1fr}}
+.hintbox h3{font-size:20px;grid-column:1/-1}
+.result{display:grid;gap:16px;justify-items:start}
+.stars{display:flex;gap:8px}
+.star{width:44px;height:44px;background:#ffffff25;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.star.on{background:var(--seg-a)}
+.tricky{display:flex;flex-wrap:wrap;gap:8px}
+.tricky button{background:#ffffff16;border:none;color:var(--stage-ink);border-radius:10px;padding:8px 12px;font-weight:700}
+
+/* map */
+.map-wrap{overflow-x:auto;background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r);padding:14px}
+table.map{border-collapse:separate;border-spacing:4px;margin:0 auto;font-variant-numeric:tabular-nums}
+.map th{font-family:var(--display);font-weight:400;font-size:16px;color:var(--muted);width:40px;height:34px}
+.map td button{width:42px;height:36px;border-radius:9px;border:1.5px solid var(--line);font-size:14px;font-weight:700;background:var(--lv0)}
+.map td button.l1{background:var(--lv1)}.map td button.l2{background:var(--lv2)}.map td button.l3{background:var(--lv3);border-color:transparent}
+.map td button:hover{border-color:var(--ink)}
+.map.anchors td button{opacity:.35}
+.map.anchors td button.anchor{opacity:1;border-color:var(--gold-deep);box-shadow:inset 0 0 0 1.5px var(--gold-deep)}
+@media (max-width:560px){.map td button{width:30px;height:30px;font-size:11px;border-radius:7px}.map th{width:28px;font-size:13px}}
+.map-tools{display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.legend i{display:inline-block;width:16px;height:16px;border-radius:5px;vertical-align:-3px;margin-right:6px;border:1.5px solid var(--line)}
+.toggle{border:1.5px solid var(--line);background:var(--surface-2);border-radius:999px;padding:8px 14px;font-weight:700;font-size:15px}
+.toggle[aria-pressed="true"]{background:var(--gold);border-color:var(--gold-deep);color:#2A1A00}
+.anchor-note{margin-top:12px;color:var(--muted);font-size:15px;min-height:1.5em}
+
+/* grown-ups */
+.adults{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px}
+.adults div{display:grid;gap:8px;border-top:3px solid var(--teal);padding-top:14px}
+.adults p{color:var(--muted)}
+footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:14px}
+
+/* confetti */
+.spark{position:fixed;width:14px;height:14px;pointer-events:none;z-index:50;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);animation:fly 1s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(260deg) scale(.4);opacity:0}}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="#lamp" aria-label="Times Table Genie home">
+      <svg viewBox="0 0 76 56" aria-hidden="true"><path d="M8 44 C8 30 60 30 60 44 Z" fill="var(--gold)"/><path d="M60 40 C66 38 70 32 74 30 C71 38 66 46 58 46Z" fill="var(--gold)"/><ellipse cx="34" cy="47" rx="16" ry="4" fill="var(--gold-deep)"/><path d="M34 30 C24 22 44 14 34 4" stroke="var(--genie)" stroke-width="6" fill="none" stroke-linecap="round"/></svg>
+      Times Table Genie
+    </a>
+    <nav aria-label="Sections">
+      <a href="#lamp">The lamp</a><a href="#spells">Spell book</a><a href="#splitter">Splitter</a><a href="#challenge">Challenge</a><a href="#map">Fact map</a>
+    </nav>
+    <button class="sound" id="sound" aria-pressed="false">Sound off</button>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="hero" id="lamp">
+      <div class="hero-copy">
+        <span class="eyebrow">Times tables, the clever way</span>
+        <h1>Forgot a fact? <span class="gold">Rebuild it.</span></h1>
+        <p class="lede">You don't have to remember every times table. Zubi the maths genie shows you how to build any fact from ones you already know.</p>
+        <div class="picker" role="group" aria-label="Choose a times table fact">
+          <div class="stepper" data-key="a">
+            <button aria-label="Smaller first number" data-d="-1">−</button><output id="outA" aria-live="polite">6</output><button aria-label="Bigger first number" data-d="1">+</button>
+          </div>
+          <span class="times">×</span>
+          <div class="stepper" data-key="b">
+            <button aria-label="Smaller second number" data-d="-1">−</button><output id="outB" aria-live="polite">9</output><button aria-label="Bigger second number" data-d="1">+</button>
+          </div>
+          <button class="btn" id="rub">Rub the lamp</button>
+        </div>
+        <p class="hint-line">Pick the fact that trips you up. Try 7 × 8, 9 × 6 or 12 × 4.</p>
+      </div>
+
+      <div class="stage lamp-stage" aria-live="polite">
+        <div class="genie-slot" id="genieMain"></div>
+        <div class="bubble" id="bubble">Split 6 into 5 and 1.<small>You know 5 × 9. Add one more 9.</small></div>
+        <div class="lamp-body">
+          <div>
+            <div class="fact"><span id="factQ">6 × 9</span><span class="eq" id="factA">= 54</span></div>
+            <div id="lampArray" style="margin-top:16px"></div>
+          </div>
+          <ol class="steps" id="lampSteps"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="spells">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Zubi's spell book</span>
+        <h2>Eight tricks that unlock every table</h2>
+        <p class="lede">Each trick turns a hard fact into easy pieces. Tap a spell to watch Zubi cast it on the lamp.</p>
+      </div>
+      <div class="spells" id="spellList"></div>
+    </div>
+  </section>
+
+  <section id="splitter" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">The splitter</span>
+        <h2>Cut the rows, add the pieces</h2>
+        <p class="lede">Every times table is just rows of dots. Cut them anywhere and the total stays the same. Tap a row or slide the cut.</p>
+      </div>
+      <div class="stage split-stage">
+        <div id="splitArray"></div>
+        <div class="split-ctrl">
+          <div class="row-pick"><label>Rows</label>
+            <div class="stepper" data-split="rows"><button aria-label="Fewer rows" data-d="-1">−</button><output id="sRows">6</output><button aria-label="More rows" data-d="1">+</button></div>
+          </div>
+          <div class="row-pick"><label>In a row</label>
+            <div class="stepper" data-split="cols"><button aria-label="Fewer in each row" data-d="-1">−</button><output id="sCols">9</output><button aria-label="More in each row" data-d="1">+</button></div>
+          </div>
+          <div class="row-pick"><label for="cut">Cut after</label><input type="range" id="cut" min="1" max="5" value="5"></div>
+          <div class="sum" id="splitSum"></div>
+          <p class="split-note">Try cutting at 5 or 10. Those are the easiest pieces to know.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="challenge" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Genie's challenge</span>
+        <h2>Ten questions. Zubi helps if you get stuck.</h2>
+        <p class="lede">Get one wrong and Zubi won't just tell you. He'll show you how to rebuild it, then you try again.</p>
+      </div>
+      <div class="stage chal" id="chal">
+        <div class="setup" id="setup">
+          <h3>Which tables shall we practise?</h3>
+          <div class="chips" id="chips"></div>
+          <div><button class="btn" id="start">Start the challenge</button></div>
+        </div>
+
+        <div class="play" id="play" hidden>
+          <div style="display:grid;gap:16px;min-width:0">
+            <div class="progress" id="progress"></div>
+            <div class="qbox">
+              <div class="genie-slot" id="genieChal"></div>
+              <div class="question"><span id="qText">7 × 8</span> = <span class="answer-box" id="ansBox">&nbsp;</span></div>
+            </div>
+            <div class="feedback" id="feedback" role="status"></div>
+            <div class="meta"><span>Score <b id="score">0</b></span><span>Streak <b id="streak">0</b></span><span>Question <b id="qnum">1</b> of 10</span></div>
+          </div>
+          <div class="keypad" id="keypad" aria-label="Number keypad"></div>
+        </div>
+
+        <div class="hintbox" id="hint" hidden>
+          <h3 id="hintTitle">Let's rebuild it</h3>
+          <div id="hintArray"></div>
+          <ol class="steps" id="hintSteps"></ol>
+        </div>
+
+        <div class="result" id="result" hidden>
+          <div class="stars" id="stars"></div>
+          <h3 id="resultTitle">Brilliant!</h3>
+          <p id="resultText" style="color:var(--stage-muted)"></p>
+          <div class="tricky" id="tricky"></div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn" id="again">Play again</button><button class="btn ghost" id="change">Change tables</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="map" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Your fact map</span>
+        <h2>Watch your 144 facts light up</h2>
+        <p class="lede">Every fact you answer in the challenge fills in here. Tap any square to see how to rebuild it.</p>
+      </div>
+      <div class="map-tools">
+        <div class="legend"><span><i style="background:var(--lv0)"></i>Not tried</span><span><i style="background:var(--lv1)"></i>Tricky</span><span><i style="background:var(--lv2)"></i>Getting there</span><span><i style="background:var(--lv3)"></i>Mastered</span></div>
+        <button class="toggle" id="anchorBtn" aria-pressed="false">Show the four magic tables</button>
+      </div>
+      <div class="map-wrap"><table class="map" id="mapTable"></table></div>
+      <p class="anchor-note" id="anchorNote"></p>
+    </div>
+  </section>
+
+  <section id="grownups" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">For grown-ups</span>
+        <h2>Why rebuilding beats rote</h2>
+      </div>
+      <div class="adults">
+        <div><h3>Memory has a back-up</h3><p>A child who only memorised 6 × 9 is stuck when it slips. A child who knows 5 × 9 + 9 can get there every time, and the fact sticks faster because it means something.</p></div>
+        <div><h3>Four tables do the heavy lifting</h3><p>With ×1, ×2, ×5 and ×10 secure, every other fact up to 12 × 12 can be built by doubling, halving, adding or taking away a group.</p></div>
+        <div><h3>Try it with real objects</h3><p>Lay out six rows of nine buttons or pasta. Cover one row, count the five rows, then add the hidden row back. The splitter above does the same thing on screen.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap">Times Table Genie · Progress is saved on this device only.</div></footer>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const GENIE=`<svg viewBox="0 0 160 210" class="genie" aria-hidden="true">
+<g class="g-float">
+<path d="M80 148 C 56 160, 106 170, 80 188" fill="none" stroke="var(--genie)" stroke-width="18" stroke-linecap="round"/>
+<path d="M46 150 C 42 112, 118 112, 114 150 C 102 160, 58 160, 46 150 Z" fill="var(--genie)"/>
+<path d="M50 130 C 52 120 62 115 70 114 L74 152 C 64 154 54 151 48 146 Z" fill="var(--gold)"/>
+<path d="M110 130 C 108 120 98 115 90 114 L86 152 C 96 154 106 151 112 146 Z" fill="var(--gold)"/>
+<rect x="52" y="130" width="56" height="16" rx="8" fill="var(--genie-deep)"/>
+<circle cx="50" cy="80" r="7" fill="var(--genie)"/><circle cx="110" cy="80" r="7" fill="var(--genie)"/>
+<circle cx="50" cy="92" r="4" fill="none" stroke="var(--gold)" stroke-width="3"/><circle cx="110" cy="92" r="4" fill="none" stroke="var(--gold)" stroke-width="3"/>
+<circle cx="80" cy="78" r="30" fill="var(--genie)"/>
+<path d="M80 50 C 82 34, 98 26, 104 32 C 96 32, 88 38, 86 50 Z" fill="var(--genie-deep)"/>
+<rect x="68" y="46" width="24" height="7" rx="3.5" fill="var(--gold)"/>
+<path d="M62 66 q7 -5 13 0 M85 66 q7 -5 13 0" stroke="var(--genie-deep)" stroke-width="3" fill="none" stroke-linecap="round"/>
+<g class="g-eyes"><ellipse cx="69" cy="76" rx="5.5" ry="6.5" fill="#fff"/><ellipse cx="91" cy="76" rx="5.5" ry="6.5" fill="#fff"/><circle cx="70" cy="77.5" r="3" fill="var(--eye)"/><circle cx="92" cy="77.5" r="3" fill="var(--eye)"/></g>
+<circle cx="61" cy="88" r="4.5" fill="var(--coral)" opacity=".5"/><circle cx="99" cy="88" r="4.5" fill="var(--coral)" opacity=".5"/>
+<path d="M70 89 Q80 99 90 89" stroke="var(--eye)" stroke-width="3" fill="none" stroke-linecap="round"/>
+</g>
+<path d="M38 198 C 38 182, 122 182, 122 198 Z" fill="var(--gold)"/>
+<path d="M120 192 C 132 188 140 180 150 177 C 144 188 134 198 118 200 Z" fill="var(--gold)"/>
+<path d="M40 190 C 24 188 22 204 38 203" stroke="var(--gold)" stroke-width="5" fill="none"/>
+<ellipse cx="80" cy="202" rx="28" ry="5" fill="var(--gold-deep)"/>
+<circle cx="80" cy="182" r="4" fill="var(--gold-deep)"/>
+</svg>`;
+document.querySelectorAll('.genie-slot').forEach(s=>s.innerHTML=GENIE);
+function nudge(slot,cls){const g=slot.querySelector('.genie');if(!g)return;g.classList.remove('cheer','think');void g.getBoundingClientRect();g.classList.add(cls);}
+
+/* ---------- sound ---------- */
+let ctx=null,soundOn=false;
+$('#sound').addEventListener('click',e=>{
+  soundOn=!soundOn;e.currentTarget.setAttribute('aria-pressed',soundOn);e.currentTarget.textContent=soundOn?'Sound on':'Sound off';
+  if(soundOn&&!ctx){try{ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(_){}}
+  if(soundOn)chime([660,880]);
+});
+function chime(freqs,type){
+  if(!soundOn||!ctx)return;
+  try{freqs.forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type=type||'sine';o.frequency.value=f;const t=ctx.currentTime+i*0.09;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.18,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.35);o.connect(g).connect(ctx.destination);o.start(t);o.stop(t+0.4);});}catch(_){}
+}
+function sparkle(el,n){
+  if(reduce)return;const r=el.getBoundingClientRect();const cols=['var(--gold)','var(--teal)','var(--coral)','var(--genie)'];
+  for(let i=0;i<(n||16);i++){const s=document.createElement('span');s.className='spark';s.style.left=(r.left+r.width/2)+'px';s.style.top=(r.top+r.height/2)+'px';
+    const a=Math.random()*Math.PI*2,d=60+Math.random()*110;s.style.setProperty('--dx',Math.cos(a)*d+'px');s.style.setProperty('--dy',Math.sin(a)*d+'px');s.style.background=cols[i%4];
+    document.body.appendChild(s);setTimeout(()=>s.remove(),1100);}
+}
+
+/* ---------- the rebuild engine ---------- */
+const ORDER=[10,1,2,5,11,9,4,3,6,12,8,7];
+function plan(a,b,force,hide){
+  let r,g;
+  if(force===a){r=a;g=b}else if(force===b){r=b;g=a}
+  else{const ia=ORDER.indexOf(a),ib=ORDER.indexOf(b);if(ib<ia){r=b;g=a}else{r=a;g=b}}
+  const P=r*g,x=n=>n*g;
+  const A=hide?'<span class="qm">?</span>':`<span class="ans">${P}</span>`;
+  const ca=s=>`<span class="ca">${s}</span>`,cb=s=>`<span class="cb">${s}</span>`;
+  let segs,steps,say,sub;
+  const splitPlus=(p,q)=>{say=`Split ${r} into ${p} and ${q}.`;sub=`You know ${p} × ${g}. Add ${q===1?'one more '+g:q+' more lots of '+g}.`;
+    segs=[{n:p,k:'a',l:`${p} × ${g}`},{n:q,k:'b',l:`${q} × ${g}`}];
+    steps=[`Split ${r} into ${ca(p)} + ${cb(q)}.`,ca(`${p} × ${g} = ${x(p)}`),cb(`${q} × ${g} = ${x(q)}`),`${x(p)} + ${x(q)} = ${A}`];};
+  switch(r){
+    case 1:say=`One lot of ${g} is just ${g}.`;sub=`Times 1 never changes a number.`;segs=[{n:1,k:'a',l:`1 × ${g}`}];steps=[`1 × ${g} = ${A}`];break;
+    case 2:say=`Times 2? Just double it.`;sub=`${g} and another ${g}.`;segs=[{n:1,k:'a',l:`${g}`},{n:1,k:'b',l:`${g}`}];steps=[`2 × ${g} means double ${g}.`,`${ca(g)} + ${cb(g)} = ${A}`];break;
+    case 3:splitPlus(2,1);break;
+    case 4:say=`4 is double 2.`;sub=`Double ${g}, then double again.`;segs=[{n:2,k:'a',l:`2 × ${g}`},{n:2,k:'b',l:`2 × ${g}`}];steps=[`4 is double 2.`,ca(`2 × ${g} = ${x(2)}`),`Double it: ${ca(x(2))} + ${cb(x(2))} = ${A}`];break;
+    case 5:say=`5 is half of 10.`;sub=`Find 10 lots, then cut it in half.`;segs=[{n:5,k:'a',l:`5 × ${g}`},{n:5,k:'ghost',l:'other half'}];steps=[`5 is half of 10.`,`10 × ${g} = ${x(10)}`,`Half of ${x(10)} is ${A}`];break;
+    case 6:splitPlus(5,1);break;
+    case 7:splitPlus(5,2);break;
+    case 8:say=`8 is double, double, double!`;sub=`Start with ${g} and double it three times.`;segs=[{n:4,k:'a',l:`4 × ${g}`},{n:4,k:'b',l:`4 × ${g}`}];steps=[`Double ${g}: 2 × ${g} = ${x(2)}`,`Double again: 4 × ${g} = ${ca(x(4))}`,`Double once more: ${ca(x(4))} + ${cb(x(4))} = ${A}`];break;
+    case 9:say=`9 is one less than 10.`;sub=`Make 10 lots, then take one away.`;segs=[{n:9,k:'a',l:`9 × ${g}`},{n:1,k:'minus',l:`− ${g}`}];steps=[`9 is one less than 10.`,`10 × ${g} = ${x(10)}`,`Take one ${g} away: ${x(10)} − ${g} = ${A}`];break;
+    case 10:say=`Times 10? Every one becomes a ten.`;sub=`${g} lots of ten.`;segs=[{n:10,k:'a',l:`10 × ${g}`}];steps=[`10 lots of ${g} is ${g} tens.`,`10 × ${g} = ${A}`];break;
+    case 11:splitPlus(10,1);break;
+    case 12:splitPlus(10,2);break;
+  }
+  const swapped=!(r===a&&g===b);
+  if(swapped)steps.unshift(`Turn it round: ${a} × ${b} is the same as ${r} × ${g}.`);
+  return {a,b,r,g,P,segs,steps,say,sub,swapped};
+}
+
+function drawArray(host,p,opt){
+  opt=opt||{};
+  const cell=22,gap=4,step=cell+gap,segGap=14,lw=104;
+  const W=lw+p.g*step-gap+4;let y=2,row=0,out=[];
+  p.segs.forEach((s,si)=>{
+    const h=s.n*step-gap;
+    out.push(`<text x="${lw-16}" y="${y+h/2}" class="lab-${s.k}" text-anchor="end" dominant-baseline="middle">${s.l}</text>`);
+    out.push(`<path class="brace br-${s.k}" d="M${lw-6} ${y} q-5 0 -5 5 V${y+h-5} q0 5 5 5"/>`);
+    for(let i=0;i<s.n;i++){
+      for(let j=0;j<p.g;j++){
+        const d=opt.animate?(row*70+j*12):0;
+        out.push(`<rect class="cell k-${s.k}" data-row="${row}" x="${lw+j*step}" y="${y+i*step}" width="${cell}" height="${cell}" rx="6" ${opt.animate?`style="animation-delay:${d}ms"`:''}/>`);
+      }
+      if(s.k==='minus'){const yy=y+i*step+cell/2;out.push(`<line class="strike" x1="${lw-2}" y1="${yy}" x2="${lw+p.g*step-gap+2}" y2="${yy}"/>`);}
+      row++;
+    }
+    y+=h+(si<p.segs.length-1?segGap:0);
+  });
+  const H=y+2;
+  host.innerHTML=`<svg class="arr ${opt.animate?'anim':''} ${opt.clickable?'clickable':''}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${p.r} rows of ${p.g}">${out.join('')}</svg>`;
+}
+function drawSteps(ol,p,animate){
+  ol.className='steps'+(animate?' anim':'');
+  const base=animate?Math.min(900,p.r*70):0;
+  ol.innerHTML=p.steps.map((s,i)=>`<li ${animate?`style="animation-delay:${base+i*380}ms"`:''}>${s}</li>`).join('');
+}
+
+/* ---------- the lamp ---------- */
+const st={a:6,b:9,force:null};
+function renderLamp(animate){
+  const p=plan(st.a,st.b,st.force);
+  $('#outA').textContent=st.a;$('#outB').textContent=st.b;
+  $('#bubble').innerHTML=`${p.swapped?'Turn it round! ':''}${p.say}<small>${p.sub}</small>`;
+  $('#factQ').textContent=`${st.a} × ${st.b}`;$('#factA').textContent=`= ${p.P}`;
+  drawArray($('#lampArray'),p,{animate});
+  drawSteps($('#lampSteps'),p,animate);
+  if(animate){nudge($('#genieMain'),'cheer');chime([523,659,784]);}
+}
+document.querySelectorAll('.picker .stepper').forEach(sp=>{
+  sp.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=sp.dataset.key;st[k]=clamp(st[k]+Number(b.dataset.d),1,12);st.force=null;renderLamp(true);});
+});
+$('#rub').addEventListener('click',()=>renderLamp(true));
+function showOnLamp(a,b,force){st.a=a;st.b=b;st.force=force||null;document.getElementById('lamp').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});setTimeout(()=>renderLamp(true),reduce?0:350);}
+
+/* ---------- spell book ---------- */
+const SPELLS=[
+  {tag:'×6 and ×3',t:'Neighbour facts',d:'Use a fact you know, then add one more group.',f:'6 × 9 = 5 × 9 + 9 = 54',a:6,b:9,r:6},
+  {tag:'×2, ×4, ×8',t:'Doubling',d:'Times 4 is double double. Times 8 is double, double, double.',f:'8 × 7 → 14 → 28 → 56',a:8,b:7,r:8},
+  {tag:'×5',t:'Half of ten',d:'Find ten lots, then cut it in half.',f:'5 × 8 = half of 80 = 40',a:5,b:8,r:5},
+  {tag:'×9',t:'Ten take away one',d:'Make ten lots, then take one group away.',f:'9 × 7 = 70 − 7 = 63',a:9,b:7,r:9},
+  {tag:'×11 and ×12',t:'Ten and a bit',d:'Ten lots, plus one or two more lots.',f:'12 × 6 = 60 + 12 = 72',a:12,b:6,r:12},
+  {tag:'Any fact',t:'Turn it round',d:'3 × 10 and 10 × 3 make the same answer. Pick the easier way.',f:'7 × 10 = 10 × 7 = 70',a:7,b:10,r:10},
+  {tag:'×7',t:'Five and two',d:'Split 7 into 5 and 2. Both are friendly facts.',f:'7 × 8 = 40 + 16 = 56',a:7,b:8,r:7},
+  {tag:'×3',t:'Two and one',d:'Double it, then add one more group.',f:'3 × 7 = 14 + 7 = 21',a:3,b:7,r:3}
+];
+$('#spellList').innerHTML=SPELLS.map((s,i)=>`<article class="spell"><span class="tag">${s.tag}</span><h3>${s.t}</h3><p>${s.d}</p><div style="display:grid;gap:10px"><div class="formula">${s.f}</div><button data-i="${i}">Cast it on the lamp →</button></div></article>`).join('');
+$('#spellList').addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(!b)return;const s=SPELLS[b.dataset.i];showOnLamp(s.a,s.b,s.r);});
+
+/* ---------- splitter ---------- */
+const sp={rows:6,cols:9,k:5};
+function renderSplit(animate){
+  sp.k=clamp(sp.k,1,sp.rows-1);
+  $('#sRows').textContent=sp.rows;$('#sCols').textContent=sp.cols;
+  const cut=$('#cut');cut.max=sp.rows-1;cut.value=sp.k;
+  const top=sp.k,bot=sp.rows-sp.k;
+  const p={r:sp.rows,g:sp.cols,segs:[{n:top,k:'a',l:`${top} × ${sp.cols}`},{n:bot,k:'b',l:`${bot} × ${sp.cols}`}]};
+  drawArray($('#splitArray'),p,{animate,clickable:true});
+  $('#splitSum').innerHTML=`<div><span class="ca">${top} × ${sp.cols} = ${top*sp.cols}</span></div><div><span class="cb">${bot} × ${sp.cols} = ${bot*sp.cols}</span></div><div class="total">${sp.rows} × ${sp.cols} = ${top*sp.cols} + ${bot*sp.cols} = ${sp.rows*sp.cols}</div>`;
+}
+document.querySelectorAll('.split-ctrl .stepper').forEach(s=>s.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;const key=s.dataset.split;
+  sp[key]=clamp(sp[key]+Number(b.dataset.d),key==='rows'?2:1,12);renderSplit(true);
+}));
+$('#cut').addEventListener('input',e=>{sp.k=Number(e.target.value);renderSplit(false);chime([440+sp.k*40]);});
+$('#splitArray').addEventListener('click',e=>{const c=e.target.closest('.cell');if(!c)return;sp.k=Number(c.dataset.row)+1;if(sp.k>=sp.rows)sp.k=sp.rows-1;renderSplit(false);chime([440+sp.k*40]);});
+
+/* ---------- progress store ---------- */
+const KEY='ttg-mastery-v1';let mastery={};
+try{mastery=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(_){mastery={};}
+const fk=(a,b)=>`${Math.min(a,b)}x${Math.max(a,b)}`;
+function rec(a,b,ok){const k=fk(a,b);const m=mastery[k]||{c:0,w:0};if(ok)m.c++;else m.w++;mastery[k]=m;try{localStorage.setItem(KEY,JSON.stringify(mastery));}catch(_){}}
+function level(a,b){const m=mastery[fk(a,b)];if(!m)return 0;if(m.c>=3&&m.c>m.w*2)return 3;if(m.c>=1&&m.c>=m.w)return 2;return 1;}
+
+/* ---------- challenge ---------- */
+let chosen=new Set([2,3,4,5,6,7,8,9,10,11,12]);
+const chips=$('#chips');
+for(let t=2;t<=12;t++){chips.insertAdjacentHTML('beforeend',`<button class="chip" data-t="${t}" aria-pressed="${chosen.has(t)}">×${t}</button>`);}
+chips.addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;const t=Number(b.dataset.t);
+  if(chosen.has(t)){if(chosen.size>1)chosen.delete(t);}else chosen.add(t);
+  chips.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',chosen.has(Number(c.dataset.t))));});
+const pad=$('#keypad');
+['7','8','9','4','5','6','1','2','3','⌫','0','✓'].forEach(k=>pad.insertAdjacentHTML('beforeend',`<button data-k="${k}" class="${k==='✓'?'go':''}" aria-label="${k==='⌫'?'Delete':k==='✓'?'Check answer':k}">${k}</button>`));
+
+const G={active:false,q:0,score:0,streak:0,tries:0,a:0,b:0,input:'',results:[],locked:false,missed:[]};
+function pickQ(){
+  const ts=[...chosen];const t=ts[Math.floor(Math.random()*ts.length)];
+  const w=[];for(let n=1;n<=12;n++){const lv=level(t,n);w.push(n===1?0.4:(4-lv)*1.5+0.5);}
+  let tot=w.reduce((s,v)=>s+v,0),r=Math.random()*tot,n=1;for(let i=0;i<12;i++){r-=w[i];if(r<=0){n=i+1;break;}}
+  if(n===G.prevN&&t===G.prevT)n=(n%12)+1;G.prevN=n;G.prevT=t;
+  return Math.random()<.5?[t,n]:[n,t];
+}
+function drawProgress(){$('#progress').innerHTML=Array.from({length:10},(_,i)=>`<span class="${G.results[i]===true?'ok':G.results[i]===false?'miss':i===G.q?'now':''}"></span>`).join('');}
+function nextQ(){
+  if(G.q>=10)return finish();
+  [G.a,G.b]=pickQ();G.tries=0;G.input='';G.locked=false;
+  $('#qText').textContent=`${G.a} × ${G.b}`;$('#ansBox').innerHTML='&nbsp;';$('#feedback').textContent='';$('#feedback').className='feedback';
+  $('#hint').hidden=true;$('#qnum').textContent=G.q+1;drawProgress();
+}
+function start(){
+  G.active=true;G.q=0;G.score=0;G.streak=0;G.results=[];G.missed=[];
+  $('#setup').hidden=true;$('#result').hidden=true;$('#play').hidden=false;$('#score').textContent=0;$('#streak').textContent=0;nextQ();
+}
+function press(k){
+  if(!G.active||G.locked)return;
+  if(k==='⌫'){G.input=G.input.slice(0,-1);}
+  else if(k==='✓'){return check();}
+  else if(G.input.length<3){G.input+=k;}
+  $('#ansBox').innerHTML=G.input||'&nbsp;';
+}
+function check(){
+  if(!G.input)return;
+  const v=Number(G.input),P=G.a*G.b,fb=$('#feedback');
+  if(v===P){
+    G.locked=true;
+    if(G.tries===0){G.score++;G.streak++;G.results[G.q]=true;rec(G.a,G.b,true);}else{G.streak=0;G.results[G.q]=false;}
+    $('#score').textContent=G.score;$('#streak').textContent=G.streak;
+    const praise=G.tries?['You rebuilt it!','There it is!','Nice rebuilding!']:['Spot on!','Magic!','Brilliant!','Zubi is impressed!'];
+    fb.textContent=praise[Math.floor(Math.random()*praise.length)]+(G.streak>=3&&!G.tries?` ${G.streak} in a row!`:'');fb.className='feedback good';
+    nudge($('#genieChal'),'cheer');chime([523,659,784,1047]);sparkle($('#ansBox'),G.streak>=5?28:14);
+    renderMap();G.q++;drawProgress();setTimeout(nextQ,G.tries?1500:1000);
+  }else{
+    G.tries++;if(G.tries===1){rec(G.a,G.b,false);G.missed.push([G.a,G.b]);}
+    fb.textContent=G.tries===1?`Not quite. Let's rebuild ${G.a} × ${G.b} together.`:`Close! Follow the steps and Zubi will show the answer.`;fb.className='feedback bad';
+    nudge($('#genieChal'),'think');chime([300,240],'triangle');
+    const p=plan(G.a,G.b,null,G.tries<2);
+    $('#hintTitle').textContent=p.say;$('#hint').hidden=false;
+    drawArray($('#hintArray'),p,{animate:true});drawSteps($('#hintSteps'),p,true);
+    G.input='';$('#ansBox').innerHTML='&nbsp;';renderMap();
+  }
+}
+function finish(){
+  G.active=false;$('#play').hidden=true;$('#hint').hidden=true;$('#result').hidden=false;
+  const s=G.score,n=s>=9?3:s>=7?2:s>=4?1:0;
+  $('#stars').innerHTML=[0,1,2].map(i=>`<span class="star ${i<n?'on':''}"></span>`).join('');
+  $('#resultTitle').textContent=n===3?'Genie-level genius!':n===2?'Great magic!':n===1?'Good start!':'Every expert starts here.';
+  const uniq=[...new Map(G.missed.map(m=>[fk(m[0],m[1]),m])).values()];
+  $('#resultText').textContent=`You got ${s} out of 10 right first time.`+(uniq.length?' These facts were tricky. Tap one to rebuild it on the lamp.':' Not a single slip!');
+  $('#tricky').innerHTML=uniq.map(m=>`<button data-a="${m[0]}" data-b="${m[1]}">${m[0]} × ${m[1]}</button>`).join('');
+  if(n>=2){sparkle($('#stars'),30);chime([523,659,784,1047,1319]);}
+}
+$('#start').addEventListener('click',start);
+$('#again').addEventListener('click',start);
+$('#change').addEventListener('click',()=>{$('#result').hidden=true;$('#setup').hidden=false;});
+$('#tricky').addEventListener('click',e=>{const b=e.target.closest('button');if(b)showOnLamp(Number(b.dataset.a),Number(b.dataset.b));});
+pad.addEventListener('click',e=>{const b=e.target.closest('button');if(b)press(b.dataset.k);});
+document.addEventListener('keydown',e=>{
+  if(!G.active)return;if(e.target.closest&&e.target.closest('input,textarea,select'))return;
+  if(/^[0-9]$/.test(e.key)){press(e.key);e.preventDefault();}
+  else if(e.key==='Backspace'){press('⌫');e.preventDefault();}
+  else if(e.key==='Enter'){press('✓');e.preventDefault();}
+});
+
+/* ---------- fact map ---------- */
+const ANCH=[1,2,5,10];
+function renderMap(){
+  let h='<thead><tr><th scope="col">×</th>'+Array.from({length:12},(_,i)=>`<th scope="col">${i+1}</th>`).join('')+'</tr></thead><tbody>';
+  for(let a=1;a<=12;a++){h+=`<tr><th scope="row">${a}</th>`;for(let b=1;b<=12;b++){const lv=level(a,b);const anc=ANCH.includes(a)||ANCH.includes(b);
+    h+=`<td><button class="l${lv}${anc?' anchor':''}" data-a="${a}" data-b="${b}" aria-label="${a} times ${b}">${a*b}</button></td>`;}h+='</tr>';}
+  $('#mapTable').innerHTML=h+'</tbody>';
+}
+$('#mapTable').addEventListener('click',e=>{const b=e.target.closest('button');if(b)showOnLamp(Number(b.dataset.a),Number(b.dataset.b));});
+$('#anchorBtn').addEventListener('click',e=>{
+  const on=e.currentTarget.getAttribute('aria-pressed')!=='true';e.currentTarget.setAttribute('aria-pressed',on);
+  $('#mapTable').classList.toggle('anchors',on);
+  $('#anchorNote').textContent=on?'Know ×1, ×2, ×5 and ×10 and you already have these 80 facts. Every other square is built from them.':'';
+});
+
+renderLamp(false);renderSplit(false);renderMap();
+})();
+</script>
+
+</body>
+</html>
